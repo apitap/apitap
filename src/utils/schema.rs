@@ -132,7 +132,9 @@ impl FieldType {
 /// Preserves field order as they appear in the first JSON object
 pub fn infer_schema_from_values(values: &[Value]) -> crate::errors::Result<Arc<Schema>> {
     if values.is_empty() {
-        return Ok(Arc::new(Schema::empty()));
+        return Err(ApitapError::PipelineError(
+            "No values provided for schema inference".to_string(),
+        ));
     }
 
     // Use serde_arrow to infer schema
