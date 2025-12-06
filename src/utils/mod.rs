@@ -9,3 +9,4 @@ pub mod http_retry;
 pub mod schema;
 pub mod streaming;
 pub mod table_provider;
+pub mod template;

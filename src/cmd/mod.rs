@@ -16,7 +16,7 @@ use crate::config::templating::{
 };
 use crate::errors::{self, Result};
 use crate::http::Http;
-use crate::pipeline::run::{run_fetch, FetchOpts};
+use crate::pipeline::run::{run_fetch, FetchOpts, FetchRequest, QueryConfig, WriteConfig};
 use crate::pipeline::sink::{MakeWriter, WriterOpts};
 use crate::pipeline::Config;
 use crate::pipeline::SinkConn;
@@ -186,20 +186,26 @@ async fn process_template(
     log_module_start(&name, source_name, dest_table);
     let module_start = Instant::now();
 
-    let stats = run_fetch(
+    let request = FetchRequest {
         client,
         url,
-        source.data_path.clone(),
-        source.query_params.clone(),
-        &source.pagination,
-        &sql,
+        data_path: source.data_path.clone(),
+        extra_params: source.query_params.clone(),
+        pagination: source.pagination.clone(),
+        retry: source.retry.clone(),
+    };
+
+    let query = QueryConfig {
+        sql: &sql,
         dest_table,
+    };
+
+    let write_config = WriteConfig {
         writer,
-        writer_opts.write_mode,
-        fetch_opts,
-        &source.retry,
-    )
-    .await?;
+        write_mode: writer_opts.write_mode,
+    };
+
+    let stats = run_fetch(request, query, write_config, fetch_opts).await?;
 
     log_module_complete(stats.total_items, module_start.elapsed().as_millis());
     Ok(())

@@ -1,6 +1,6 @@
 use crate::errors::Result;
 use datafusion::arrow::{array::RecordBatch, datatypes::Schema};
-use futures::Stream;
+use futures::{Stream, StreamExt};
 use serde_json::Value;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -50,7 +50,7 @@ impl TrueStreamingProcessor {
             }
         };
 
-        Ok(Box::pin(batch_stream))
+        Ok(batch_stream.boxed())
     }
 }
 

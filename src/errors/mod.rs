@@ -9,6 +9,9 @@ pub enum ApitapError {
     #[error("LinesCodecError error: {0}")]
     LinesCodecError(#[from] LinesCodecError),
 
+    #[error("Regex error: {0}")]
+    RegexError(#[from] regex::Error),
+
     #[error("DataFusion error: {0}")]
     Datafusion(#[from] datafusion::error::DataFusionError),
 

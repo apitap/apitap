@@ -4,3 +4,5 @@
 select 
     * 
 from {{ use_source("peopleforce_employees") }};
+
+{{ scheduler("@daily") }}
