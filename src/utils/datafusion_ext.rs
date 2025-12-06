@@ -157,7 +157,7 @@ pub trait DataFrameExt {
     async fn to_json(&self) -> Result<serde_json::Value>;
 
     async fn to_stream(&self) -> Result<JsonStreamType> {
-        Ok(Box::pin(stream::empty::<Result<serde_json::Value>>()))
+        Ok(stream::empty::<Result<serde_json::Value>>().boxed())
     }
 }
 
@@ -199,7 +199,7 @@ impl DataFrameExt for DataFrame {
             }
         };
 
-        Ok(Box::pin(s))
+        Ok(s.boxed())
     }
 
     async fn to_json(&self) -> Result<serde_json::Value> {

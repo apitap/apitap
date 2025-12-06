@@ -27,7 +27,6 @@ use tokio_util::{
 use tracing::{debug, debug_span, error, info, info_span, trace, warn};
 
 // =========================== NDJSON helper ===================================
-pub type BoxStreamCustom<T> = Pin<Box<dyn Stream<Item = T> + Send + 'static>>;
 
 /// Stream an HTTP response as NDJSON and flatten an optional JSON pointer (`/data`, etc.).
 /// If `data_path` is None, it will try to flatten the top-level array; otherwise it yields the object.
@@ -307,7 +306,7 @@ impl PaginatedFetcher {
             }
         };
 
-        Ok(Box::pin(s))
+        Ok(s.boxed())
     }
 
     /// LIMIT/OFFSET mode. If `total_hint` is None, it fetches until a page yields 0 rows.
@@ -538,7 +537,7 @@ impl PaginatedFetcher {
     async fn write_streamed_page(
         &self,
         _page: u64,
-        s: BoxStreamCustom<Result<Value>>,
+        s: BoxStream<'static, Result<Value>>,
         writer: &dyn PageWriter,
         stats: &mut FetchStats,
         write_mode: WriteMode,
@@ -547,16 +546,16 @@ impl PaginatedFetcher {
         let count = Arc::new(AtomicUsize::new(0));
         let count_clone = Arc::clone(&count);
 
-        let counted_stream = s.map(move |result| {
-            if result.is_ok() {
-                count_clone.fetch_add(1, Ordering::Relaxed);
-            }
-            result
-        });
+        let counted_stream = s
+            .map(move |result| {
+                if result.is_ok() {
+                    count_clone.fetch_add(1, Ordering::Relaxed);
+                }
+                result
+            })
+            .boxed();
 
-        writer
-            .write_page_stream(Box::pin(counted_stream), write_mode)
-            .await?;
+        writer.write_page_stream(counted_stream, write_mode).await?;
 
         // Get final count
         let final_count = count.load(Ordering::Relaxed);
@@ -814,8 +813,7 @@ pub async fn infer_schema_and_create_factory(
     // Step 4: Create factory
     let factory = Arc::new(move || {
         let data = items.clone();
-        Box::pin(futures::stream::iter(data.into_iter().map(Ok)))
-            as std::pin::Pin<Box<dyn Stream<Item = Result<Value>> + Send>>
+        futures::stream::iter(data.into_iter().map(Ok)).boxed()
     });
 
     Ok((schema, factory))
@@ -824,7 +822,7 @@ pub async fn infer_schema_and_create_factory(
 #[allow(dead_code)]
 fn convert_record_batch_to_json(
     mut stream: datafusion::execution::SendableRecordBatchStream,
-) -> std::pin::Pin<Box<dyn Stream<Item = Result<serde_json::Value>> + Send + 'static>> {
+) -> BoxStream<'static, Result<serde_json::Value>> {
     let json_stream = async_stream::try_stream! {
         while let Some(batch_result) = stream.next().await {
             let batch = batch_result
@@ -845,7 +843,7 @@ fn convert_record_batch_to_json(
         }
     };
 
-    Box::pin(json_stream)
+    json_stream.boxed()
 }
 /// Convert a single Arrow array value to JSON
 #[allow(dead_code)]

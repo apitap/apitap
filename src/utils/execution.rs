@@ -10,6 +10,7 @@ use datafusion::{
         Partitioning, PlanProperties,
     },
 };
+use futures::stream::BoxStream;
 #[allow(unused_imports)]
 use futures::{Stream, StreamExt, TryFutureExt};
 use serde_json::Value;
@@ -21,7 +22,7 @@ use crate::{
 
 /// Type alias for the factory function
 pub type JsonStreamFactory =
-    Arc<dyn Fn() -> Pin<Box<dyn Stream<Item = errors::Result<Value>> + Send>> + Send + Sync>;
+    Arc<dyn Fn() -> BoxStream<'static, errors::Result<Value>> + Send + Sync>;
 
 #[derive(Clone)]
 pub struct Exec {
@@ -130,7 +131,7 @@ impl ExecutionPlan for Exec {
             }
         };
 
-        let adapter = RecordBatchStreamAdapter::new(schema, Box::pin(record_batch_stream));
+        let adapter = RecordBatchStreamAdapter::new(schema, record_batch_stream.boxed());
         Ok(Box::pin(adapter))
     }
     fn name(&self) -> &str {

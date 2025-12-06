@@ -2,6 +2,8 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
+use futures::FutureExt;
+
 use crate::errors::Result;
 use crate::pipeline::TargetConn;
 use crate::writer::postgres::PostgresWriter;
@@ -45,10 +47,11 @@ impl MakeWriter for TargetConn {
                 let hook: Option<Hook> = if opts.truncate_first {
                     let pg_for_hook = Arc::clone(&pg);
                     Some(Box::new(move || {
-                        Box::pin(async move {
+                        (async move {
                             pg_for_hook.truncate().await?;
                             Ok(())
-                        }) as HookFuture
+                        })
+                        .boxed() as HookFuture
                     }))
                 } else {
                     None

@@ -13,6 +13,12 @@ keywords = ["etl", "datafusion", "http", "warehouse", "pipeline"]
 categories = ["database", "web-programming::http-client", "development-tools"]
 readme = "README.md"
 
+[profile.release]
+opt-level = "z"     # Optimize for size instead of speed
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Reduce parallel codegen for better optimization
+panic = "abort"     # Remove unwinding code for smaller binary
+strip = true        # Automatically strip symbols from binary
 
 [dependencies]
 datafusion = "47.0.0"

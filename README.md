@@ -216,6 +216,44 @@ FROM {{ use_source("json_placeholder_posts") }}
 WHERE userId > 5;
 ```
 
+#### Custom Template Functions
+
+ApiTap provides built-in template functions for dynamic queries:
+
+**`current_date()`** - Returns today's date in YYYY-MM-DD format
+```yaml
+query_params:
+  - key: updated_since
+    value: "{{ current_date() }}"
+```
+
+**`few_date_ago(n)`** - Returns date n days ago in YYYY-MM-DD format
+```yaml
+query_params:
+  - key: start_date
+    value: "{{ few_date_ago(7) }}"  # 7 days ago
+  - key: end_date
+    value: "{{ current_date() }}"
+```
+
+**Real-world example:**
+```yaml
+sources:
+  - name: api_recent_changes
+    url: https://api.example.com/changes
+    query_params:
+      - key: from
+        value: "{{ few_date_ago(1) }}"  # Yesterday
+      - key: to
+        value: "{{ current_date() }}"   # Today
+```
+
+These functions are particularly useful for:
+- Incremental data loads
+- Date range filtering
+- Daily/periodic API queries
+- Avoiding hardcoded dates in configs
+
 ### 3) Configure sources and targets
 
 **`examples/config/pipelines.yaml`**

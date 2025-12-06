@@ -30,7 +30,7 @@ sources:
         value: application/json
     query_params:
       - key: cql
-        value: lastModified>='2025-11-14' AND lastModified<='2025-11-14' AND type IN (page, blogpost, comment, attachment)
+        value: lastModified>='{{ current_date() }}' AND lastModified<='{{ few_date_ago(1) }}' AND type IN (page, blogpost, comment, attachment)
     pagination:
       kind: limit_offset
       limit_param: limit
