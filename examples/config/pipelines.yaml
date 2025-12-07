@@ -1,14 +1,13 @@
 sources:
   - name: github_repos
-    url: https://api.github.com/apitap/repos
-    table_destination_name: apitap_github_repos
+    url: https://api.github.com/users/octocat/repos
+    table_destination_name: octocat_github_repos
     primary_key_in_dest: id
-    data_path: /data
     headers:
       - key: Authorization
-        value: Bearer XXXXXXXXXXXXXXXXXss
-      - key: Content-Type
-        value: application/json
+        value: Bearer xxxxxxxxx
+      - key: User-Agent
+        value: ApiTap/1.0
     pagination:
       kind: page_number
       page_param: page
@@ -22,7 +21,7 @@ targets:
   - name: postgres_sink
     type: postgres
     auth:
-      username: postgres
-      password: postgres
+      username: poatgres
+      password: poatgres
     host: localhost
     database: apitap
