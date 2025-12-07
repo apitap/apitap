@@ -37,7 +37,7 @@ pub fn init_tracing() {
 ///
 /// # Arguments
 ///
-/// * `level` - Optional log level string (e.g., "info", "debug", "trace"). 
+/// * `level` - Optional log level string (e.g., "info", "debug", "trace").
 ///   If `None`, falls back to `RUST_LOG` environment variable or defaults to "info"
 /// * `use_json` - If `true`, enables JSON formatter for structured logging.
 ///   If `false`, uses human-readable format with file/line numbers

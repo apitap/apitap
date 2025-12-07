@@ -336,7 +336,20 @@ impl PaginatedFetcher {
         self.batch_size = n.max(1);
         self
     }
+}
 
+/// Configuration for limit/offset fetch operations.
+pub struct LimitOffsetConfig<'a> {
+    pub limit: u64,
+    pub data_path: Option<String>,
+    pub extra_params: Option<&'a [(String, String)]>,
+    pub total_hint: Option<TotalHint>,
+    pub writer: Arc<dyn PageWriter>,
+    pub write_mode: WriteMode,
+    pub retry: &'a crate::pipeline::Retry,
+}
+
+impl PaginatedFetcher {
     pub async fn limit_offset_stream(
         &self,
         limit: u64,
@@ -401,31 +414,33 @@ impl PaginatedFetcher {
     }
 
     /// LIMIT/OFFSET mode. If `total_hint` is None, it fetches until a page yields 0 rows.
-    #[allow(clippy::too_many_arguments)]
-    pub async fn fetch_limit_offset(
-        &self,
-        limit: u64,
-        data_path: Option<String>,
-        extra_params: Option<&[(String, String)]>,
-        _total_hint: Option<TotalHint>,
-        writer: Arc<dyn PageWriter>,
-        write_mode: WriteMode,
-        config_retry: &crate::pipeline::Retry,
-    ) -> Result<FetchStats> {
-        let span = info_span!("fetch.limit_offset.stream", source = %self.base_url, limit = limit);
+    pub async fn fetch_limit_offset(&self, config: LimitOffsetConfig<'_>) -> Result<FetchStats> {
+        let span =
+            info_span!("fetch.limit_offset.stream", source = %self.base_url, limit = config.limit);
         let _g = span.enter();
 
         let mut stats = FetchStats::new();
 
         // Build a single JsonStreamType over all pages
         let json_stream = self
-            .limit_offset_stream(limit, data_path.as_deref(), extra_params, config_retry)
+            .limit_offset_stream(
+                config.limit,
+                config.data_path.as_deref(),
+                config.extra_params,
+                config.retry,
+            )
             .await?;
 
         // Now you can wrap it into your QueryResultStream abstraction
 
-        self.write_streamed_page(1, json_stream, &*writer, &mut stats, write_mode.clone())
-            .await?;
+        self.write_streamed_page(
+            1,
+            json_stream,
+            &*config.writer,
+            &mut stats,
+            config.write_mode.clone(),
+        )
+        .await?;
 
         // You don't have per-page stats here easily, but you could compute total_items
         // inside write_stream, or wrap the stream to count rows.

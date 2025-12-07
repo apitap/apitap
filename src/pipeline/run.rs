@@ -7,7 +7,7 @@ use crate::pipeline::QueryParam;
 use crate::utils::template;
 use crate::{
     errors::{ApitapError, Result},
-    http::fetcher::{DataFusionPageWriter, PaginatedFetcher, Pagination},
+    http::fetcher::{DataFusionPageWriter, LimitOffsetConfig, PaginatedFetcher, Pagination},
     writer::{DataWriter, WriteMode},
 };
 
@@ -87,15 +87,15 @@ pub async fn run_fetch(
             })?;
 
             let stats = fetcher
-                .fetch_limit_offset(
-                    page_size,
-                    request.data_path,
-                    Some(&extra_params_vec),
-                    None,
-                    page_writer,
-                    write_config.write_mode,
-                    &request.retry,
-                )
+                .fetch_limit_offset(LimitOffsetConfig {
+                    limit: page_size,
+                    data_path: request.data_path,
+                    extra_params: Some(&extra_params_vec),
+                    total_hint: None,
+                    writer: page_writer,
+                    write_mode: write_config.write_mode,
+                    retry: &request.retry,
+                })
                 .await?;
             Ok(stats)
         }
