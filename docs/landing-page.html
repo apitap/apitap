@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ApiTap - High-performance HTTP-to-warehouse ETL engine built with Rust and Apache DataFusion">
+    <meta name="keywords" content="ETL, Rust, DataFusion, PostgreSQL, API, Data Pipeline, SQL">
+    <meta property="og:title" content="ApiTap - Stream APIs to Your Warehouse with SQL">
+    <meta property="og:description" content="High-performance ETL engine for REST APIs. Built with Rust & Apache DataFusion.">
+    <meta property="og:type" content="website">
+    <title>ApiTap - Stream APIs to Your Warehouse with SQL</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #0F2350;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(15, 35, 80, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid #5DD9E8;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        nav a {
+            color: #5DD9E8;
+            text-decoration: none;
+            margin-left: 30px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #BFEEF5;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 100px 20px;
+            background: linear-gradient(135deg, #0F2350 0%, #1A3A6B 100%);
+        }
+
+        .hero-logo {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .tagline {
+            font-size: 24px;
+            color: #5DD9E8;
+            margin-bottom: 40px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #5DD9E8;
+            color: #0F2350;
+        }
+
+        .btn-primary:hover {
+            background: #BFEEF5;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #5DD9E8;
+            border: 2px solid #5DD9E8;
+        }
+
+        .btn-secondary:hover {
+            background: #5DD9E8;
+            color: #0F2350;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 20px;
+            background: white;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 60px;
+            color: #0F2350;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: #5DD9E8;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(93, 217, 232, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #0F2350;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* Code Example Section */
+        .code-example {
+            padding: 80px 20px;
+            background: #1A3A6B;
+            color: white;
+        }
+
+        .code-container {
+            background: #0F2350;
+            border-radius: 12px;
+            padding: 30px;
+            border: 2px solid #5DD9E8;
+            margin-top: 40px;
+        }
+
+        pre {
+            overflow-x: auto;
+            background: #0a1929;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #BFEEF5;
+        }
+
+        .code-comment {
+            color: #7dd3fc;
+        }
+
+        /* Performance Section */
+        .performance {
+            padding: 80px 20px;
+            background: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #5DD9E8 0%, #2D5A9C 100%);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* Installation Section */
+        .installation {
+            padding: 80px 20px;
+            background: #f8f9fa;
+        }
+
+        .install-steps {
+            max-width: 800px;
+            margin: 40px auto;
+        }
+
+        .step {
+            background: white;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #5DD9E8;
+        }
+
+        .step h3 {
+            color: #0F2350;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .command-box {
+            background: #0F2350;
+            color: #5DD9E8;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        /* Footer */
+        footer {
+            background: #0F2350;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .footer-links {
+            margin: 20px 0;
+        }
+
+        .footer-links a {
+            color: #5DD9E8;
+            text-decoration: none;
+            margin: 0 15px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #BFEEF5;
+        }
+
+        .badges {
+            margin: 20px 0;
+        }
+
+        .badges img {
+            margin: 0 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .tagline {
+                font-size: 18px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">
+                    <span class="logo-text">🧙‍♂️ APITAP</span>
+                </a>
+                <nav>
+                    <a href="#features">Features</a>
+                    <a href="#performance">Performance</a>
+                    <a href="#installation">Installation</a>
+                    <a href="https://github.com/apitap/apitap" target="_blank">GitHub</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-logo">🧙‍♂️</div>
+            <h1>ApiTap</h1>
+            <p class="tagline">Stream APIs to Your Warehouse with SQL</p>
+            <p style="color: #BFEEF5; font-size: 18px; max-width: 600px; margin: 0 auto 40px;">
+                High-performance HTTP-to-warehouse ETL engine built with Rust and Apache DataFusion
+            </p>
+            <div class="cta-buttons">
+                <a href="https://github.com/apitap/apitap" class="btn btn-primary" target="_blank">
+                    Get Started
+                </a>
+                <a href="https://github.com/apitap/apitap#readme" class="btn btn-secondary" target="_blank">
+                    Documentation
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">✨ Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Blazingly Fast</h3>
+                    <p>2-5x faster than traditional ETL tools. Optimized batch writes, lock-free operations, and efficient async I/O.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🦀</div>
+                    <h3>Rust-Powered</h3>
+                    <p>Built with Rust for maximum performance, memory safety, and reliability. Production-ready from day one.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>SQL Transformations</h3>
+                    <p>Transform data using SQL powered by Apache DataFusion. Full SQL support with streaming execution.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Smart Pagination</h3>
+                    <p>Automatic handling of LimitOffset, PageNumber, PageOnly, and Cursor-based pagination strategies.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🐘</div>
+                    <h3>PostgreSQL Support</h3>
+                    <p>Full support for PostgreSQL 14-17 with automatic version detection and optimized MERGE operations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>SQL Templating</h3>
+                    <p>Minijinja templates with custom functions for dynamic queries and date handling.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Example Section -->
+    <section class="code-example">
+        <div class="container">
+            <h2 class="section-title" style="color: white;">💻 Simple & Powerful</h2>
+            <p style="text-align: center; color: #BFEEF5; font-size: 18px; max-width: 700px; margin: 0 auto;">
+                Write SQL to transform API data. ApiTap handles pagination, retries, and database loading.
+            </p>
+            <div class="code-container">
+                <pre><code><span class="code-comment">-- Declare your destination</span>
+{{ sink(name="postgres_sink") }}
+
+<span class="code-comment">-- Transform with SQL</span>
+SELECT 
+    id,
+    userId as user_id,
+    title,
+    body,
+    CURRENT_TIMESTAMP as loaded_at
+FROM {{ use_source("api_data") }}
+WHERE userId > 5;</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Section -->
+    <section class="performance" id="performance">
+        <div class="container">
+            <h2 class="section-title">🚀 Performance That Matters</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">2-5x</div>
+                    <div class="stat-label">Faster Database Writes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">25-50K</div>
+                    <div class="stat-label">Rows/Sec Throughput</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">Concurrent Requests</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section class="installation" id="installation">
+        <div class="container">
+            <h2 class="section-title">🛠️ Quick Start</h2>
+            <div class="install-steps">
+                <div class="step">
+                    <h3>1. Clone the Repository</h3>
+                    <div class="command-box">
+                        git clone https://github.com/apitap/apitap.git<br>
+                        cd apitap
+                    </div>
+                </div>
+                <div class="step">
+                    <h3>2. Build with Cargo</h3>
+                    <div class="command-box">
+                        cargo build --release
+                    </div>
+                </div>
+                <div class="step">
+                    <h3>3. Run Your First Pipeline</h3>
+                    <div class="command-box">
+                        ./target/release/apitap -m examples/sql -y examples/config/pipelines.yaml
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <h3 style="margin-bottom: 20px;">🧙‍♂️ Making Data Pipelines Magical</h3>
+            <div class="badges">
+                <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License">
+                <img src="https://img.shields.io/badge/rust-1.70+-orange.svg" alt="Rust 1.70+">
+                <img src="https://img.shields.io/badge/powered%20by-DataFusion-blue" alt="Powered by DataFusion">
+                <img src="https://img.shields.io/badge/status-production%20ready-green" alt="Production Ready">
+            </div>
+            <div class="footer-links">
+                <a href="https://github.com/apitap/apitap" target="_blank">GitHub</a>
+                <a href="https://github.com/apitap/apitap#readme" target="_blank">Documentation</a>
+                <a href="https://github.com/apitap/apitap/issues" target="_blank">Issues</a>
+                <a href="https://github.com/apitap/apitap/blob/main/LICENSE" target="_blank">License</a>
+            </div>
+            <p style="margin-top: 20px; opacity: 0.8;">
+                Built with ❤️ and Rust<br>
+                © 2025 ApiTap. All rights reserved.
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
