@@ -29,7 +29,7 @@ macro_rules! parse_function {
 /// # Example
 /// ```
 /// use apitap::utils::template::extract_function_names;
-/// 
+///
 /// let text = "date: {{ current_date() }}";
 /// let names = extract_function_names(text).expect("Failed to extract function names");
 /// assert_eq!(names, vec!["current_date()"]);
@@ -154,7 +154,7 @@ pub fn few_date_ago(days: i64) -> Result<String> {
 /// # Example
 /// ```
 /// use apitap::utils::template::substitute_templates;
-/// 
+///
 /// let text = "Today is {{ current_date() }}";
 /// let result = substitute_templates(text).expect("Failed to substitute templates");
 /// // Result will be like: "Today is 2025-12-07"

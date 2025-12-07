@@ -119,7 +119,15 @@ pub async fn run_pipeline(root: &str, cfg_path: &str) -> Result<()> {
 
     // Process each template
     for (index, name) in template_names.into_iter().enumerate() {
-        process_template(index + 1, name, &env, &capture, &config, &fetch_opts).await?;
+        process_template(ProcessTemplateConfig {
+            index: index + 1,
+            name,
+            env: &env,
+            capture: &capture,
+            config: &config,
+            fetch_opts: &fetch_opts,
+        })
+        .await?;
     }
 
     log_pipeline_complete(start_time.elapsed().as_millis());
@@ -135,30 +143,34 @@ fn create_fetch_options() -> FetchOpts {
     }
 }
 
-/// Processes a single SQL template through the ETL pipeline.
-#[allow(clippy::too_many_arguments)]
-async fn process_template(
+/// Configuration for processing a single SQL template.
+struct ProcessTemplateConfig<'a> {
     index: usize,
     name: String,
-    env: &minijinja::Environment<'_>,
-    capture: &Arc<Mutex<RenderCapture>>,
-    config: &Config,
-    fetch_opts: &FetchOpts,
-) -> Result<()> {
-    let span = tracing::info_span!("module", idx = index, name = %name);
+    env: &'a minijinja::Environment<'a>,
+    capture: &'a Arc<Mutex<RenderCapture>>,
+    config: &'a Config,
+    fetch_opts: &'a FetchOpts,
+}
+
+/// Processes a single SQL template through the ETL pipeline.
+async fn process_template(config: ProcessTemplateConfig<'_>) -> Result<()> {
+    let span = tracing::info_span!("module", idx = config.index, name = %config.name);
     let _guard = span.enter();
 
     // Render template and extract metadata
-    let rendered = render_one(env, capture, &name)?;
+    let rendered = render_one(config.env, config.capture, &config.name)?;
     let source_name = &rendered.capture.source;
     let sink_name = &rendered.capture.sink;
 
     // Resolve source and target configurations
     let source = config
+        .config
         .source(source_name)
         .ok_or_else(|| create_config_error("source", source_name))?;
 
     let target = config
+        .config
         .target(sink_name)
         .ok_or_else(|| create_config_error("target", sink_name))?;
 
@@ -183,7 +195,7 @@ async fn process_template(
     }
 
     // Execute ETL pipeline
-    log_module_start(&name, source_name, dest_table);
+    log_module_start(&config.name, source_name, dest_table);
     let module_start = Instant::now();
 
     let request = FetchRequest {
@@ -205,7 +217,7 @@ async fn process_template(
         write_mode: writer_opts.write_mode,
     };
 
-    let stats = run_fetch(request, query, write_config, fetch_opts).await?;
+    let stats = run_fetch(request, query, write_config, config.fetch_opts).await?;
 
     log_module_complete(stats.total_items, module_start.elapsed().as_millis());
     Ok(())
