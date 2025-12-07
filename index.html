@@ -17,11 +17,16 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
             line-height: 1.6;
             color: #333;
             background: #0F2350;
+            overflow-x: hidden;
         }
 
         .container {
@@ -30,15 +35,30 @@
             padding: 0 20px;
         }
 
+        /* Animated Background */
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         /* Header */
         header {
-            background: rgba(15, 35, 80, 0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(15, 35, 80, 0.8);
+            backdrop-filter: blur(20px);
             padding: 20px 0;
-            position: sticky;
+            position: fixed;
+            width: 100%;
             top: 0;
             z-index: 1000;
-            border-bottom: 2px solid #5DD9E8;
+            border-bottom: 1px solid rgba(93, 217, 232, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        header.scrolled {
+            background: rgba(15, 35, 80, 0.95);
+            padding: 15px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
 
         .header-content {
@@ -50,15 +70,34 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             color: white;
             text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover .logo-img {
+            transform: rotate(-5deg) scale(1.1);
         }
 
         .logo-text {
             font-size: 24px;
             font-weight: 700;
             letter-spacing: 0.05em;
+            background: linear-gradient(45deg, #5DD9E8, #BFEEF5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         nav a {
@@ -66,7 +105,23 @@
             text-decoration: none;
             margin-left: 30px;
             font-weight: 500;
-            transition: color 0.3s;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #5DD9E8;
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
         }
 
         nav a:hover {
@@ -75,28 +130,117 @@
 
         /* Hero Section */
         .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
-            padding: 100px 20px;
-            background: linear-gradient(135deg, #0F2350 0%, #1A3A6B 100%);
+            padding: 120px 20px 80px;
+            background: linear-gradient(-45deg, #0F2350, #1A3A6B, #2D5A9C, #1A3A6B);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            position: relative;
+            overflow: hidden;
         }
 
-        .hero-logo {
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(93, 217, 232, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -250px;
+            right: -250px;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(191, 238, 245, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -200px;
+            left: -200px;
+            animation: float 15s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-logo-img {
             width: 200px;
             height: 200px;
-            margin: 0 auto 30px;
+            margin-bottom: 30px;
+            animation: float-logo 6s ease-in-out infinite;
+            display: inline-block;
+            filter: drop-shadow(0 10px 30px rgba(93, 217, 232, 0.3));
+        }
+
+        @keyframes float-logo {
+            0%, 100% { 
+                transform: translateY(0) rotate(0deg); 
+            }
+            25% { 
+                transform: translateY(-15px) rotate(2deg); 
+            }
+            50% { 
+                transform: translateY(0) rotate(0deg); 
+            }
+            75% { 
+                transform: translateY(-10px) rotate(-2deg); 
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
 
         .hero h1 {
-            font-size: 48px;
+            font-size: 72px;
             color: white;
             margin-bottom: 20px;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: -2px;
+            animation: fadeInUp 1s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .tagline {
-            font-size: 24px;
+            font-size: 28px;
             color: #5DD9E8;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
+            font-weight: 300;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .hero-description {
+            color: #BFEEF5;
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            animation: fadeInUp 1s ease 0.4s both;
         }
 
         .cta-buttons {
@@ -104,26 +248,48 @@
             gap: 20px;
             justify-content: center;
             flex-wrap: wrap;
+            animation: fadeInUp 1s ease 0.6s both;
         }
 
         .btn {
-            padding: 15px 40px;
-            border-radius: 8px;
+            padding: 18px 45px;
+            border-radius: 50px;
             text-decoration: none;
             font-weight: 600;
             font-size: 16px;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .btn-primary {
-            background: #5DD9E8;
-            color: #0F2350;
+            background: linear-gradient(135deg, #5DD9E8, #2D5A9C);
+            color: white;
+            box-shadow: 0 10px 30px rgba(93, 217, 232, 0.3);
         }
 
         .btn-primary:hover {
-            background: #BFEEF5;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(93, 217, 232, 0.4);
         }
 
         .btn-secondary {
@@ -133,52 +299,89 @@
         }
 
         .btn-secondary:hover {
-            background: #5DD9E8;
-            color: #0F2350;
+            background: rgba(93, 217, 232, 0.1);
+            transform: translateY(-3px);
         }
 
         /* Features Section */
         .features {
-            padding: 80px 20px;
+            padding: 100px 20px;
             background: white;
+            position: relative;
         }
 
         .section-title {
             text-align: center;
-            font-size: 36px;
-            margin-bottom: 60px;
+            font-size: 48px;
+            margin-bottom: 20px;
             color: #0F2350;
+            font-weight: 800;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 60px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 40px;
         }
 
         .feature-card {
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s;
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e9ecef;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #5DD9E8, #2D5A9C);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
         }
 
         .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(93, 217, 232, 0.2);
             border-color: #5DD9E8;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(93, 217, 232, 0.2);
         }
 
         .feature-icon {
-            font-size: 48px;
+            font-size: 56px;
             margin-bottom: 20px;
+            display: inline-block;
+            transition: transform 0.4s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.2) rotate(5deg);
         }
 
         .feature-card h3 {
             font-size: 24px;
             margin-bottom: 15px;
             color: #0F2350;
+            font-weight: 700;
         }
 
         .feature-card p {
@@ -188,169 +391,314 @@
 
         /* Code Example Section */
         .code-example {
-            padding: 80px 20px;
-            background: #1A3A6B;
+            padding: 100px 20px;
+            background: linear-gradient(135deg, #0F2350 0%, #1A3A6B 50%, #2D5A9C 100%);
             color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-example::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(93, 217, 232, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -300px;
+            left: -300px;
         }
 
         .code-container {
-            background: #0F2350;
-            border-radius: 12px;
-            padding: 30px;
-            border: 2px solid #5DD9E8;
+            background: rgba(10, 25, 41, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(93, 217, 232, 0.3);
             margin-top: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #5DD9E8, transparent);
         }
 
         pre {
             overflow-x: auto;
-            background: #0a1929;
-            padding: 20px;
-            border-radius: 8px;
+            background: rgba(10, 25, 41, 0.8);
+            padding: 30px;
+            border-radius: 12px;
             margin: 20px 0;
         }
 
         code {
             font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
-            font-size: 14px;
-            line-height: 1.6;
+            font-size: 15px;
+            line-height: 1.8;
             color: #BFEEF5;
         }
 
         .code-comment {
             color: #7dd3fc;
+            font-style: italic;
         }
 
         /* Performance Section */
         .performance {
-            padding: 80px 20px;
-            background: white;
+            padding: 100px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
         }
 
         .stat-card {
             text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #5DD9E8 0%, #2D5A9C 100%);
-            border-radius: 12px;
+            padding: 50px 30px;
+            background: white;
+            border-radius: 20px;
             color: white;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.4s ease;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #5DD9E8 0%, #2D5A9C 100%);
+            z-index: 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.05);
         }
 
         .stat-number {
-            font-size: 48px;
-            font-weight: 700;
+            font-size: 56px;
+            font-weight: 800;
             margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
         }
 
         .stat-label {
-            font-size: 16px;
-            opacity: 0.9;
+            font-size: 18px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
         }
 
         /* Installation Section */
         .installation {
-            padding: 80px 20px;
+            padding: 100px 20px;
             background: #f8f9fa;
         }
 
         .install-steps {
-            max-width: 800px;
+            max-width: 900px;
             margin: 40px auto;
         }
 
         .step {
             background: white;
-            padding: 30px;
-            margin-bottom: 20px;
-            border-radius: 12px;
-            border-left: 4px solid #5DD9E8;
+            padding: 40px;
+            margin-bottom: 30px;
+            border-radius: 20px;
+            border-left: 5px solid #5DD9E8;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .step:hover {
+            transform: translateX(10px);
+            box-shadow: 0 15px 40px rgba(93, 217, 232, 0.15);
         }
 
         .step h3 {
             color: #0F2350;
-            margin-bottom: 15px;
-            font-size: 20px;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
         }
 
         .command-box {
             background: #0F2350;
             color: #5DD9E8;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: monospace;
-            margin: 10px 0;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            margin: 15px 0;
             overflow-x: auto;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         /* Footer */
         footer {
-            background: #0F2350;
+            background: linear-gradient(135deg, #0F2350 0%, #1A3A6B 100%);
             color: white;
-            padding: 40px 20px;
+            padding: 60px 20px 30px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(93, 217, 232, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -150px;
+            right: -150px;
+        }
+
+        .footer-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .footer-logo:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .footer-title {
+            font-size: 28px;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .badges {
+            margin: 30px 0;
+        }
+
+        .badges img {
+            margin: 5px;
+            transition: transform 0.3s ease;
+        }
+
+        .badges img:hover {
+            transform: scale(1.1);
         }
 
         .footer-links {
-            margin: 20px 0;
+            margin: 30px 0;
         }
 
         .footer-links a {
             color: #5DD9E8;
             text-decoration: none;
-            margin: 0 15px;
-            transition: color 0.3s;
+            margin: 0 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #5DD9E8;
+            transition: width 0.3s ease;
+        }
+
+        .footer-links a:hover::after {
+            width: 100%;
         }
 
         .footer-links a:hover {
             color: #BFEEF5;
         }
 
-        .badges {
-            margin: 20px 0;
-        }
-
-        .badges img {
-            margin: 0 5px;
+        .footer-bottom {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(93, 217, 232, 0.2);
+            opacity: 0.8;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
-                font-size: 32px;
+                font-size: 42px;
             }
 
             .tagline {
-                font-size: 18px;
+                font-size: 20px;
             }
 
             .section-title {
-                font-size: 28px;
+                font-size: 32px;
+            }
+
+            .hero-logo-img {
+                width: 120px;
+                height: 120px;
+            }
+
+            .logo-img {
+                width: 32px;
+                height: 32px;
             }
 
             nav {
                 display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-number {
+                font-size: 42px;
+            }
+
+            .footer-links a {
+                display: block;
+                margin: 10px 0;
             }
         }
     </style>
 </head>
 <body>
     <!-- Header -->
-    <header>
+    <header id="header">
         <div class="container">
             <div class="header-content">
                 <a href="#" class="logo">
-                    <span class="logo-text">🧙‍♂️ APITAP</span>
+                    <img src="logo/apitap-logo.png" alt="ApiTap Logo" class="logo-img">
+                    <span class="logo-text">APITAP</span>
                 </a>
                 <nav>
                     <a href="#features">Features</a>
                     <a href="#performance">Performance</a>
                     <a href="#installation">Installation</a>
-                    <a href="https://github.com/apitap/apitap" target="_blank">GitHub</a>
+                    <a href="https://github.com/harisdemorata/apitap" target="_blank">GitHub</a>
                 </nav>
             </div>
         </div>
@@ -358,18 +706,18 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="container">
-            <div class="hero-logo">🧙‍♂️</div>
+        <div class="hero-content">
+            <img src="logo/apitap-logo.png" alt="ApiTap" class="hero-logo-img">
             <h1>ApiTap</h1>
             <p class="tagline">Stream APIs to Your Warehouse with SQL</p>
-            <p style="color: #BFEEF5; font-size: 18px; max-width: 600px; margin: 0 auto 40px;">
+            <p class="hero-description">
                 High-performance HTTP-to-warehouse ETL engine built with Rust and Apache DataFusion
             </p>
             <div class="cta-buttons">
-                <a href="https://github.com/apitap/apitap" class="btn btn-primary" target="_blank">
-                    Get Started
+                <a href="https://github.com/harisdemorata/apitap" class="btn btn-primary" target="_blank">
+                    Get Started →
                 </a>
-                <a href="https://github.com/apitap/apitap#readme" class="btn btn-secondary" target="_blank">
+                <a href="https://github.com/harisdemorata/apitap#readme" class="btn btn-secondary" target="_blank">
                     Documentation
                 </a>
             </div>
@@ -380,6 +728,9 @@
     <section class="features" id="features">
         <div class="container">
             <h2 class="section-title">✨ Key Features</h2>
+            <p class="section-subtitle">
+                Everything you need to build powerful data pipelines
+            </p>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">⚡</div>
@@ -419,7 +770,7 @@
     <section class="code-example">
         <div class="container">
             <h2 class="section-title" style="color: white;">💻 Simple & Powerful</h2>
-            <p style="text-align: center; color: #BFEEF5; font-size: 18px; max-width: 700px; margin: 0 auto;">
+            <p class="section-subtitle" style="color: #BFEEF5;">
                 Write SQL to transform API data. ApiTap handles pagination, retries, and database loading.
             </p>
             <div class="code-container">
@@ -443,6 +794,9 @@ WHERE userId > 5;</code></pre>
     <section class="performance" id="performance">
         <div class="container">
             <h2 class="section-title">🚀 Performance That Matters</h2>
+            <p class="section-subtitle">
+                Built for speed and scale
+            </p>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number">2-5x</div>
@@ -464,25 +818,21 @@ WHERE userId > 5;</code></pre>
     <section class="installation" id="installation">
         <div class="container">
             <h2 class="section-title">🛠️ Quick Start</h2>
+            <p class="section-subtitle">
+                Get up and running in minutes
+            </p>
             <div class="install-steps">
                 <div class="step">
                     <h3>1. Clone the Repository</h3>
-                    <div class="command-box">
-                        git clone https://github.com/apitap/apitap.git<br>
-                        cd apitap
-                    </div>
+                    <div class="command-box">git clone https://github.com/harisdemorata/apitap.git<br>cd apitap</div>
                 </div>
                 <div class="step">
                     <h3>2. Build with Cargo</h3>
-                    <div class="command-box">
-                        cargo build --release
-                    </div>
+                    <div class="command-box">cargo build --release</div>
                 </div>
                 <div class="step">
                     <h3>3. Run Your First Pipeline</h3>
-                    <div class="command-box">
-                        ./target/release/apitap -m examples/sql -y examples/config/pipelines.yaml
-                    </div>
+                    <div class="command-box">./target/release/apitap -m examples/sql -y examples/config/pipelines.yaml</div>
                 </div>
             </div>
         </div>
@@ -491,7 +841,8 @@ WHERE userId > 5;</code></pre>
     <!-- Footer -->
     <footer>
         <div class="container">
-            <h3 style="margin-bottom: 20px;">🧙‍♂️ Making Data Pipelines Magical</h3>
+            <img src="logo/apitap-logo.png" alt="ApiTap" class="footer-logo">
+            <h3 class="footer-title">Making Data Pipelines Magical</h3>
             <div class="badges">
                 <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License">
                 <img src="https://img.shields.io/badge/rust-1.70+-orange.svg" alt="Rust 1.70+">
@@ -499,16 +850,42 @@ WHERE userId > 5;</code></pre>
                 <img src="https://img.shields.io/badge/status-production%20ready-green" alt="Production Ready">
             </div>
             <div class="footer-links">
-                <a href="https://github.com/apitap/apitap" target="_blank">GitHub</a>
-                <a href="https://github.com/apitap/apitap#readme" target="_blank">Documentation</a>
-                <a href="https://github.com/apitap/apitap/issues" target="_blank">Issues</a>
-                <a href="https://github.com/apitap/apitap/blob/main/LICENSE" target="_blank">License</a>
+                <a href="https://github.com/harisdemorata/apitap" target="_blank">GitHub</a>
+                <a href="https://github.com/harisdemorata/apitap#readme" target="_blank">Documentation</a>
+                <a href="https://github.com/harisdemorata/apitap/issues" target="_blank">Issues</a>
+                <a href="https://github.com/harisdemorata/apitap/blob/main/LICENSE" target="_blank">License</a>
             </div>
-            <p style="margin-top: 20px; opacity: 0.8;">
+            <div class="footer-bottom">
                 Built with ❤️ and Rust<br>
                 © 2025 ApiTap. All rights reserved.
-            </p>
+            </div>
         </div>
     </footer>
+
+    <script>
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
