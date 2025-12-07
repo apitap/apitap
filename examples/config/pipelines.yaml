@@ -1,40 +1,18 @@
 sources:
-  - name: peopleforce_employees
-    url: https://peopleforce.io/api/public/v2/employees?status=active
-    table_destination_name: peopleforce_employees
+  - name: github_repos
+    url: https://api.github.com/apitap/repos
+    table_destination_name: apitap_github_repos
     primary_key_in_dest: id
     data_path: /data
     headers:
-      - key: X-API-KEY
-        value: xxxxxxxxxxxxxxxxxx
+      - key: Authorization
+        value: Bearer XXXXXXXXXXXXXXXXXss
       - key: Content-Type
         value: application/json
     pagination:
       kind: page_number
       page_param: page
       per_page_param: per_page
-    retry:
-      max_attempts: 3
-      max_delay_secs: 5
-      min_delay_secs: 1
-
-  - name: confluence_content
-    url: https://confluence.com/rest/api/search
-    table_destination_name: confluence_content
-    primary_key_in_dest: id
-    data_path: /results
-    headers:
-      - key: Authorization
-        value: Bearer xxxxxxxxxxxxxxxxxx
-      - key: Content-Type
-        value: application/json
-    query_params:
-      - key: cql
-        value: lastModified>='{{ current_date() }}' AND lastModified<='{{ few_date_ago(1) }}' AND type IN (page, blogpost, comment, attachment)
-    pagination:
-      kind: limit_offset
-      limit_param: limit
-      offset_param: start
     retry:
       max_attempts: 3
       max_delay_secs: 5
