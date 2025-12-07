@@ -134,6 +134,9 @@ pub async fn ndjson_stream_qs(
 
 // =============================== Page Writer =================================
 
+/// Trait for writing paginated data as it's fetched.
+///
+/// Implementations handle how each page of fetched data is processed and stored.
 #[async_trait]
 pub trait PageWriter: Send + Sync {
     async fn write_page(
@@ -198,6 +201,41 @@ pub enum TotalHint {
 
 // =========================== Fetcher =========================================
 
+/// High-performance HTTP fetcher with automatic pagination support.
+///
+/// Handles fetching data from paginated REST APIs with multiple strategies:
+/// - Limit/Offset (e.g., `?limit=50&offset=100`)
+/// - Page Number (e.g., `?page=2&per_page=50`)
+/// - Page Only (e.g., `?page=2`)
+/// - Cursor-based (e.g., `?cursor=xxx`)
+///
+/// # Features
+///
+/// * Concurrent page fetching for better throughput
+/// * Automatic retry with exponential backoff
+/// * Streaming support for memory-efficient processing
+/// * NDJSON and regular JSON support
+///
+/// # Example
+///
+/// ```no_run
+/// use reqwest::Client;
+/// use apitap::http::fetcher::PaginatedFetcher;
+///
+/// # async fn example() -> apitap::errors::Result<()> {
+/// let client = Client::new();
+/// let fetcher = PaginatedFetcher::new(
+///     client,
+///     "https://api.example.com/data",
+///     5  // concurrency
+/// )
+/// .with_limit_offset("limit", "offset")
+/// .with_batch_size(256);
+///
+/// // Use fetcher to fetch paginated data
+/// # Ok(())
+/// # }
+/// ```
 pub struct PaginatedFetcher {
     client: Client,
     base_url: String,
@@ -207,6 +245,27 @@ pub struct PaginatedFetcher {
 }
 
 impl PaginatedFetcher {
+    /// Creates a new paginated fetcher.
+    ///
+    /// # Arguments
+    ///
+    /// * `client` - HTTP client for making requests
+    /// * `base_url` - Base URL of the API endpoint
+    /// * `concurrency` - Number of concurrent page fetches
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use reqwest::Client;
+    /// use apitap::http::fetcher::PaginatedFetcher;
+    ///
+    /// let client = Client::new();
+    /// let fetcher = PaginatedFetcher::new(
+    ///     client,
+    ///     "https://api.example.com/users",
+    ///     5  // Fetch 5 pages concurrently
+    /// );
+    /// ```
     pub fn new(client: Client, base_url: impl Into<String>, concurrency: usize) -> Self {
         Self {
             client,
@@ -217,6 +276,22 @@ impl PaginatedFetcher {
         }
     }
 
+    /// Configures limit/offset pagination strategy.
+    ///
+    /// # Arguments
+    ///
+    /// * `limit_param` - Query parameter name for limit (e.g., "limit", "_limit")
+    /// * `offset_param` - Query parameter name for offset (e.g., "offset", "_start")
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use reqwest::Client;
+    /// # use apitap::http::fetcher::PaginatedFetcher;
+    /// let fetcher = PaginatedFetcher::new(Client::new(), "https://api.example.com", 5)
+    ///     .with_limit_offset("limit", "offset");
+    /// // Fetches: ?limit=50&offset=0, ?limit=50&offset=50, etc.
+    /// ```
     pub fn with_limit_offset(
         mut self,
         limit_param: impl Into<String>,
@@ -229,6 +304,22 @@ impl PaginatedFetcher {
         self
     }
 
+    /// Configures page number pagination strategy.
+    ///
+    /// # Arguments
+    ///
+    /// * `page_param` - Query parameter name for page number (e.g., "page")
+    /// * `per_page_param` - Query parameter name for items per page (e.g., "per_page", "page_size")
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use reqwest::Client;
+    /// # use apitap::http::fetcher::PaginatedFetcher;
+    /// let fetcher = PaginatedFetcher::new(Client::new(), "https://api.example.com", 5)
+    ///     .with_page_number("page", "per_page");
+    /// // Fetches: ?page=1&per_page=50, ?page=2&per_page=50, etc.
+    /// ```
     pub fn with_page_number(
         mut self,
         page_param: impl Into<String>,
@@ -566,6 +657,19 @@ impl PaginatedFetcher {
 
 // ============================== Stats =======================================
 
+/// Statistics for a fetch operation.
+///
+/// Tracks the number of successful pages, errors, and total items fetched.
+///
+/// # Example
+///
+/// ```
+/// use apitap::http::fetcher::FetchStats;
+///
+/// let stats = FetchStats::new();
+/// assert_eq!(stats.success_count, 0);
+/// assert_eq!(stats.total_items, 0);
+/// ```
 #[derive(Debug, Clone)]
 pub struct FetchStats {
     pub success_count: usize,
@@ -580,6 +684,7 @@ impl Default for FetchStats {
 }
 
 impl FetchStats {
+    /// Creates new empty fetch statistics.
     pub fn new() -> Self {
         Self {
             success_count: 0,

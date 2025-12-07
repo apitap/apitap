@@ -93,6 +93,37 @@ impl Middleware for SummaryLogger {
     }
 }
 
+/// Builds an HTTP client with automatic retry capabilities and logging middleware.
+///
+/// This function wraps a reqwest Client with retry logic using exponential backoff
+/// and adds logging middleware to track request attempts and outcomes.
+///
+/// # Arguments
+///
+/// * `reqwest_client` - The base reqwest HTTP client to wrap
+/// * `config_retray` - Retry configuration specifying max attempts and delay bounds
+///
+/// # Returns
+///
+/// A `ClientWithMiddleware` that automatically retries failed requests with exponential backoff
+///
+/// # Example
+///
+/// ```
+/// use reqwest::Client;
+/// use apitap::pipeline::Retry;
+/// use apitap::utils::http_retry::build_client_with_retry;
+///
+/// let base_client = Client::new();
+/// let retry_config = Retry {
+///     max_attempts: 3,
+///     min_delay_secs: 1,
+///     max_delay_secs: 10,
+/// };
+///
+/// let client = build_client_with_retry(base_client, &retry_config);
+/// // Use client for HTTP requests with automatic retry
+/// ```
 pub fn build_client_with_retry(
     reqwest_client: Client,
     config_retray: &crate::pipeline::Retry,

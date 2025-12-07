@@ -60,6 +60,45 @@ fn validate_credentials(cfg: &PipelineConfig) -> Result<()> {
 
 pub mod templating;
 
+/// Loads and validates a pipeline configuration from a YAML file.
+///
+/// This function reads a YAML configuration file, parses it into a `PipelineConfig`,
+/// and validates all credentials (ensuring referenced environment variables exist and are non-empty).
+///
+/// # Arguments
+///
+/// * `path` - Path to the YAML configuration file
+///
+/// # Returns
+///
+/// * `Ok(PipelineConfig)` - Successfully loaded and validated configuration
+/// * `Err(ApitapError)` - If file cannot be read, YAML is invalid, or credentials are missing
+///
+/// # Errors
+///
+/// Returns an error if:
+/// - The file cannot be opened or read
+/// - The YAML syntax is invalid
+/// - Required environment variables for credentials are not set or are empty
+/// - Credential configuration is incomplete (missing username/password pairs)
+///
+/// # Example
+///
+/// ```no_run
+/// use apitap::config::load_config_from_path;
+/// use std::env;
+///
+/// // Set required environment variables
+/// env::set_var("POSTGRES_USER", "myuser");
+/// env::set_var("POSTGRES_PASSWORD", "mypass");
+///
+/// // Load configuration
+/// let config = load_config_from_path("pipelines.yaml")
+///     .expect("Failed to load config");
+///
+/// println!("Loaded {} sources", config.sources.len());
+/// println!("Loaded {} targets", config.targets.len());
+/// ```
 pub fn load_config_from_path<P: AsRef<Path>>(path: P) -> Result<PipelineConfig> {
     let f = File::open(path)?;
     let cfg: PipelineConfig = serde_yaml::from_reader(f)?;
