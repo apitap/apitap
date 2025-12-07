@@ -3,12 +3,14 @@
 </p>
 
 <p align="center">
-  <strong>Magical ETL Pipelines Made Simple</strong>
+  <strong>Stream APIs to Your Warehouse with SQL</strong>
 </p>
 
 <p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/rust-stable-orange"></a>
-  <a href="#"><img src="https://img.shields.io/badge/license-MIT-blue"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/rust-1.70+-orange.svg" alt="Rust 1.70+">
+  <a href="https://datafusion.apache.org/"><img src="https://img.shields.io/badge/powered%20by-DataFusion-blue" alt="Powered by DataFusion"></a>
+  <img src="https://img.shields.io/badge/status-production%20ready-green" alt="Production Ready">
 </p>
 
 
@@ -16,10 +18,6 @@
 
 **Stream JSON from REST APIs, transform with SQL, load into your warehouse**  
 *High-performance HTTP-to-warehouse ETL engine powered by Apache DataFusion & Rust*
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)
-[![DataFusion](https://img.shields.io/badge/powered%20by-DataFusion-blue)](https://datafusion.apache.org/)
 
 **Quick links:**  
 [What is ApiTap?](#-what-is-apitap) • [Features](#-features) • [Performance](#-performance) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [Roadmap](#%EF%B8%8F-roadmap)
