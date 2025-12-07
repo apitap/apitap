@@ -421,6 +421,11 @@ sources:
     url: https://api.example.com/data  # Base URL
     table_destination_name: my_table   # Target table name
     
+    # Data path (optional - for nested JSON responses)
+    # Omit this field if API returns root-level array: [{"id": 1}, {"id": 2}]
+    # Include if data is nested: {"data": [{"id": 1}], "meta": {...}}
+    data_path: /data                   # JSONPath to extract array from response
+    
     # Pagination (choose one)
     pagination:
       # Option 1: Limit/Offset
@@ -446,6 +451,29 @@ sources:
       max_attempts: 3
       min_delay_secs: 1
       max_delay_secs: 30
+
+# Examples of data_path usage
+
+# Example 1: Root-level array (no data_path needed)
+# API response: [{"id": 1, "name": "foo"}, {"id": 2, "name": "bar"}]
+sources:
+  - name: github_repos
+    url: https://api.github.com/users/octocat/repos
+    # data_path omitted - API returns array at root level
+    
+# Example 2: Nested data
+# API response: {"data": [{"id": 1}, {"id": 2}], "pagination": {...}}
+sources:
+  - name: nested_api
+    url: https://api.example.com/items
+    data_path: /data  # Extract the "data" array
+    
+# Example 3: Deeply nested
+# API response: {"response": {"items": [...]}}
+sources:
+  - name: deep_nested
+    url: https://api.example.com/deep
+    data_path: /response/items  # Extract "items" from "response"
 ```
 
 ### Target Configuration
