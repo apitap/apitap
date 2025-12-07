@@ -1,3 +1,17 @@
+<p align="center">
+  <img src="logo/apitap-logo.png" alt="ApiTap" width="300">
+</p>
+
+<p align="center">
+  <strong>Magical ETL Pipelines Made Simple</strong>
+</p>
+
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/rust-stable-orange"></a>
+  <a href="#"><img src="https://img.shields.io/badge/license-MIT-blue"></a>
+</p>
+
+
 # 🚰 ApiTap
 
 **Stream JSON from REST APIs, transform with SQL, load into your warehouse**  
