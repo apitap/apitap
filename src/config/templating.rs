@@ -20,6 +20,36 @@ pub struct RenderedSql {
     pub capture: RenderCapture,
 }
 
+/// Builds a Minijinja template environment with custom functions for SQL templating.
+///
+/// Creates a templating environment that supports:
+/// - `{{ sink(name="...") }}` - Declares the target sink/destination
+/// - `{{ use_source("...") }}` - References a data source by name
+///
+/// The environment captures sink and source names during template rendering
+/// for pipeline configuration.
+///
+/// # Arguments
+///
+/// * `root` - Root directory path for template files
+/// * `shared_cap` - Shared capture state for tracking sink/source usage
+///
+/// # Returns
+///
+/// A configured `Environment` ready for SQL template rendering
+///
+/// # Example
+///
+/// ```no_run
+/// use std::sync::{Arc, Mutex};
+/// use apitap::config::templating::{build_env_with_captures, RenderCapture};
+///
+/// let capture = Arc::new(Mutex::new(RenderCapture::default()));
+/// let env = build_env_with_captures("./sql", &capture);
+///
+/// // Environment is now ready to render SQL templates
+/// // with sink() and use_source() functions
+/// ```
 pub fn build_env_with_captures(
     root: &str,
     shared_cap: &Arc<Mutex<RenderCapture>>,
@@ -57,6 +87,39 @@ pub fn build_env_with_captures(
     env
 }
 
+/// Renders a single SQL template and captures metadata.
+///
+/// Processes a template file through Minijinja, capturing any `sink()` and
+/// `use_source()` calls made during rendering. Returns the rendered SQL
+/// along with captured metadata.
+///
+/// # Arguments
+///
+/// * `env` - Minijinja environment (from `build_env_with_captures`)
+/// * `shared_cap` - Shared capture state to store metadata
+/// * `name` - Template name/path relative to environment root
+///
+/// # Returns
+///
+/// * `Ok(RenderedSql)` - Rendered SQL with captured sink/source metadata
+/// * `Err(ApitapError)` - If template not found or rendering fails
+///
+/// # Example
+///
+/// ```no_run
+/// use std::sync::{Arc, Mutex};
+/// use apitap::config::templating::{build_env_with_captures, render_one, RenderCapture};
+///
+/// let capture = Arc::new(Mutex::new(RenderCapture::default()));
+/// let env = build_env_with_captures("./examples/sql", &capture);
+///
+/// let rendered = render_one(&env, &capture, "example.sql")
+///     .expect("Failed to render template");
+///
+/// println!("SQL: {}", rendered.sql);
+/// println!("Sink: {}", rendered.capture.sink);
+/// println!("Source: {}", rendered.capture.source);
+/// ```
 pub fn render_one(
     env: &Environment,
     shared_cap: &Arc<Mutex<RenderCapture>>,
@@ -86,6 +149,36 @@ pub fn render_one(
     })
 }
 
+/// Lists all SQL template files in a directory recursively.
+///
+/// Walks through the directory tree finding all `.sql` files (case-insensitive)
+/// and returns their paths relative to the root directory.
+///
+/// # Arguments
+///
+/// * `root` - Root directory to search for SQL templates
+///
+/// # Returns
+///
+/// * `Ok(Vec<String>)` - Sorted list of template paths (e.g., "example.sql", "queries/users.sql")
+/// * `Err(ApitapError)` - If directory cannot be read (uses walkdir errors)
+///
+/// # Example
+///
+/// ```no_run
+/// use apitap::config::templating::list_sql_templates;
+///
+/// let templates = list_sql_templates("./examples/sql")
+///     .expect("Failed to list templates");
+///
+/// for template in templates {
+///     println!("Found template: {}", template);
+/// }
+/// // Output might be:
+/// // Found template: example.sql
+/// // Found template: queries/users.sql
+/// // Found template: transforms/aggregates.sql
+/// ```
 pub fn list_sql_templates(root: impl AsRef<Path>) -> Result<Vec<String>> {
     let root = root.as_ref();
     let mut out = Vec::new();
