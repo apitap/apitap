@@ -176,7 +176,10 @@ async fn process_template(config: ProcessTemplateConfig<'_>) -> Result<()> {
 
     // Build HTTP client with configured headers
     let client = build_http_client(source)?;
-    let url = reqwest::Url::parse(&Http::new(source.url.clone()).get_url())?;
+    
+    // Substitute environment variables in URL
+    let url_with_env = crate::utils::template::substitute_env_vars(&source.url)?;
+    let url = reqwest::Url::parse(&Http::new(url_with_env).get_url())?;
 
     // Prepare destination table and SQL
     let dest_table = extract_destination_table(source, source_name)?;
@@ -229,7 +232,9 @@ fn build_http_client(source: &Source) -> Result<reqwest::Client> {
 
     if let Some(headers) = &source.headers {
         for header in headers {
-            http = http.header(&header.key, &header.value);
+            // Substitute environment variables in header values
+            let value = crate::utils::template::substitute_env_vars(&header.value)?;
+            http = http.header(&header.key, &value);
         }
     }
 

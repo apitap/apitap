@@ -21,4 +21,3 @@ POSTGRES_DATABASE=mydb
 # For example, if you have multiple PostgreSQL targets:
 # POSTGRES_ANALYTICS_USER=analytics_user
 # POSTGRES_ANALYTICS_PASSWORD=analytics_password
-SENTRY_TOKEN=04711fc6249e4e228eb129a3578fcce8ac5f736584b24e7683de5f7e9489dccd
