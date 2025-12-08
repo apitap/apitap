@@ -97,9 +97,16 @@ See detailed performance analysis in:
 - 🧩 **SQL modules with Minijinja templating**  
   - `{{ sink(name="postgres_sink") }}` declares a target  
   - `{{ use_source("json_place_holder") }}` binds a source table  
+  - `{{ schedule("0 */3 * * * *") }}` sets cron schedule for automated execution
   - Full templating support for dynamic SQL generation
 - 📁 **Module loader** for entire `--modules` folder of `.sql` files
 - 🎭 **Template engine** that captures sinks & sources at render time
+- ⏰ **Built-in Scheduler**
+  - Cron-based job scheduling (6-field format: seconds, minutes, hours, day, month, day of week)
+  - Concurrent job execution with independent configurations
+  - Graceful shutdown with Ctrl+C
+  - Automatic retry on failures
+  - Clean, readable logging output
 - 🌐 **HTTP client with smart pagination**
   - ✅ **LimitOffset** (e.g., `?_limit=50&_start=100`)
   - ✅ **PageNumber** (e.g., `?page=2&per_page=50`)
@@ -334,6 +341,134 @@ apitap -m examples/sql -y examples/config/pipelines.yaml --log-json
 
 ```bash
 psql -U postgres -d mydb -c "SELECT COUNT(*) FROM posts;"
+```
+
+---
+
+## ⏰ Scheduling Jobs
+
+ApiTap includes a built-in scheduler for automated, recurring pipeline executions using cron expressions.
+
+### Adding Schedules to SQL Modules
+
+Add a `{{ schedule("...") }}` directive to any SQL module:
+
+**`examples/sql/scheduled_posts.sql`**
+
+```sql
+{{ sink(name="postgres_sink") }}
+{{ schedule("0 */3 * * * *") }}  -- Run every 3 minutes
+
+SELECT 
+    id,
+    userId as user_id,
+    title,
+    CURRENT_TIMESTAMP as loaded_at
+FROM {{ use_source("json_placeholder_posts") }}
+WHERE userId > 5;
+```
+
+### Cron Expression Format
+
+ApiTap uses a **6-field cron format** (with seconds):
+
+```
+┌───────────── second (0-59)
+│ ┌───────────── minute (0-59)
+│ │ ┌───────────── hour (0-23)
+│ │ │ ┌───────────── day of month (1-31)
+│ │ │ │ ┌───────────── month (1-12)
+│ │ │ │ │ ┌───────────── day of week (0-6, 0=Sunday)
+│ │ │ │ │ │
+│ │ │ │ │ │
+* * * * * *
+```
+
+**Common Examples:**
+
+```sql
+-- Every minute at second 0
+{{ schedule("0 * * * * *") }}
+
+-- Every 5 minutes
+{{ schedule("0 */5 * * * *") }}
+
+-- Every hour at minute 0
+{{ schedule("0 0 * * * *") }}
+
+-- Every day at 2:30 AM
+{{ schedule("0 30 2 * * *") }}
+
+-- Every Monday at 9:00 AM
+{{ schedule("0 0 9 * * 1") }}
+
+-- Every 15 minutes during business hours (9 AM - 5 PM)
+{{ schedule("0 */15 9-17 * * 1-5") }}
+```
+
+### Running the Scheduler
+
+When you run ApiTap, it automatically detects schedules and starts the scheduler:
+
+```bash
+apitap -m examples/sql -y examples/config/pipelines.yaml
+```
+
+**Output:**
+
+```
+🚀 Starting Apitap Pipeline Execution
+═══════════════════════════════════════════════════════════
+📂 Discovered 3 SQL module(s)
+⚙️  Configuration loaded successfully
+📅 Scheduled job 'posts.sql' with cron: 0 */3 * * * *
+📅 Scheduled job 'users.sql' with cron: 0 0 * * * *
+📅 Scheduled job 'analytics.sql' with cron: 0 30 2 * * *
+⏰ Scheduler started. Press Ctrl+C to stop.
+═══════════════════════════════════════════════════════════
+```
+
+### Scheduler Behavior
+
+- **Concurrent Execution**: Multiple jobs can run simultaneously if their schedules overlap
+- **Independent Configs**: Each job runs with its own source/sink configuration
+- **Automatic Retry**: Failed jobs are logged but don't stop the scheduler
+- **Graceful Shutdown**: Press `Ctrl+C` to stop all jobs and exit cleanly
+- **Clean Logging**: Concise output showing start time, duration, and records processed
+
+**Job Execution Logs:**
+
+```
+🔄 Running: posts.sql | json_placeholder_posts → posts
+✅ Completed: posts.sql | 100 records | 2341ms
+✅ Scheduled job 'posts.sql' completed successfully
+⏰ Next execution for 'posts.sql': 2025-12-08T14:03:00Z
+```
+
+### Performance Notes
+
+- Jobs run **in parallel** when scheduled at the same time
+- Each job uses its own HTTP client and database connection
+- Resource contention may occur with many concurrent jobs
+- Consider staggering schedules for heavy workloads:
+  ```sql
+  -- Job 1: runs at :00
+  {{ schedule("0 0 * * * *") }}
+  
+  -- Job 2: runs at :15
+  {{ schedule("0 15 * * * *") }}
+  
+  -- Job 3: runs at :30
+  {{ schedule("0 30 * * * *") }}
+  ```
+
+### Without Scheduling
+
+If you don't include `{{ schedule("...") }}`, the job runs once and exits (original behavior):
+
+```bash
+# Run all jobs once and exit
+apitap -m examples/sql -y examples/config/pipelines.yaml
 ```
 
 ---

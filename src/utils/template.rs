@@ -236,7 +236,7 @@ pub fn substitute_env_vars(text: &str) -> Result<String> {
         let env_value = env::var(var_name).map_err(|_| {
             ApitapError::PipelineError(format!("Environment variable not found: {}", var_name))
         })?;
-        
+
         result.push_str(&env_value);
 
         last_match = full_match.end();

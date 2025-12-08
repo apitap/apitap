@@ -63,10 +63,7 @@ fn test_substitute_env_vars_multiple() -> Result<()> {
     let text = "${TEST_BASE_URL}/${TEST_API_VERSION}/endpoint?token=${TEST_TOKEN}";
     let result = substitute_env_vars(text)?;
 
-    assert_eq!(
-        result,
-        "https://api.example.com/v1/endpoint?token=token456"
-    );
+    assert_eq!(result, "https://api.example.com/v1/endpoint?token=token456");
 
     // Clean up
     unsafe {
@@ -225,7 +222,7 @@ fn test_substitute_templates() -> Result<()> {
     assert!(result.contains(&expected_yesterday));
     assert!(!result.contains("{{"));
     assert!(!result.contains("}}"));
-    assert_eq!(result2,"${TOKEN}");
+    assert_eq!(result2, "${TOKEN}");
 
     Ok(())
 }

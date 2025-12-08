@@ -5,7 +5,7 @@ sources:
     primary_key_in_dest: id
     headers:
       - key: Authorization
-        value: Bearer xxxxxxxxx
+        value: Bearer ${GITHUB_TOKEN}
       - key: User-Agent
         value: ApiTap/1.0
     pagination:
@@ -17,6 +17,77 @@ sources:
       max_delay_secs: 5
       min_delay_secs: 1
 
+  - name: github_abduldjafar
+    url: https://api.github.com/users/abduldjafar/repos
+    table_destination_name: github_abduldjafar
+    primary_key_in_dest: id
+    headers:
+      - key: Authorization
+        value: Bearer ${GITHUB_TOKEN}
+      - key: User-Agent
+        value: ApiTap/1.0
+    pagination:
+      kind: page_number
+      page_param: page
+      per_page_param: per_page
+    retry:
+      max_attempts: 3
+      max_delay_secs: 5
+      min_delay_secs: 1
+
+  - name: github_supabase
+    url: https://api.github.com/users/supabase/repos
+    table_destination_name: github_supabase
+    primary_key_in_dest: id
+    headers:
+      - key: Authorization
+        value: Bearer ${GITHUB_TOKEN}
+      - key: User-Agent
+        value: ApiTap/1.0
+    pagination:
+      kind: page_number
+      page_param: page
+      per_page_param: per_page
+    retry:
+      max_attempts: 3
+      max_delay_secs: 5
+      min_delay_secs: 1
+
+  - name: github_risingwavelabs
+    url: https://api.github.com/users/risingwavelabs/repos
+    table_destination_name: github_risingwavelabs
+    primary_key_in_dest: id
+    headers:
+      - key: Authorization
+        value: Bearer ${GITHUB_TOKEN}
+      - key: User-Agent
+        value: ApiTap/1.0
+    pagination:
+      kind: page_number
+      page_param: page
+      per_page_param: per_page
+    retry:
+      max_attempts: 3
+      max_delay_secs: 5
+      min_delay_secs: 1
+    
+  - name: github_apache
+    url: https://api.github.com/users/apache/repos
+    table_destination_name: github_apache
+    primary_key_in_dest: id
+    headers:
+      - key: Authorization
+        value: Bearer ${GITHUB_TOKEN}
+      - key: User-Agent
+        value: ApiTap/1.0
+    pagination:
+      kind: page_number
+      page_param: page
+      per_page_param: per_page
+    retry:
+      max_attempts: 3
+      max_delay_secs: 5
+      min_delay_secs: 1
 targets:
   - name: postgres_sink
     type: postgres

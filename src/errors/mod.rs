@@ -1,4 +1,5 @@
 use thiserror::Error;
+use tokio_cron_scheduler::JobSchedulerError;
 use tokio_util::codec::LinesCodecError;
 use tracing_subscriber::filter::FromEnvError;
 
@@ -56,6 +57,9 @@ pub enum ApitapError {
 
     #[error("URL parse error: {0}")]
     UrlParseError(#[from] url::ParseError),
+
+    #[error("Schedule error: {0}")]
+    ScheduleError(#[from] JobSchedulerError),
 
     #[error("Poison Error: {0}")]
     PoisonError(String),
