@@ -95,11 +95,13 @@ targets:
 
 ## ⚡ Performance
 
-| Metric | Value |
-|--------|-------|
-| Database writes | 25-50K rows/sec |
-| API pagination | 100+ concurrent requests |
-| Speed improvement | 2-5x vs traditional tools |
+Built with Rust and Apache DataFusion for high performance:
+
+- **Optimized batch processing** - 5000 rows per batch write
+- **Concurrent execution** - Efficient async I/O with Tokio
+- **Lock-free operations** - Atomic counters for streaming
+- **Memory efficient** - Zero-copy operations where possible
+- **Profiled & optimized** - Flamegraph analysis applied
 
 ## 🤝 Contributing
 

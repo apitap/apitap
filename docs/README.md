@@ -52,20 +52,23 @@ It's great for small/medium data stacks, side projects, production pipelines, an
 
 ## ⚡ Performance
 
-ApiTap has been profiled and optimized using flamegraph analysis:
+ApiTap has been profiled and optimized using flamegraph analysis for production-ready performance:
 
-- **2-5x faster** database writes (optimized batch sizes)
-- **Lock-free** streaming operations (atomic counters)
-- **Efficient** async I/O (8192-item channel buffers)
-- **Competitive** with industry-standard ETL tools
+- **Optimized batch processing** - 5000 rows per batch write
+- **Lock-free operations** - Atomic counters for streaming
+- **Efficient async I/O** - 8192-item channel buffers
+- **Concurrent execution** - Parallel HTTP requests with Tokio
+- **Memory efficient** - Zero-copy operations where possible
+- **Production tested** - Streaming architecture for large datasets
 
-### Benchmarks
+### Architecture Optimizations
 
-| Operation | Throughput | Notes |
-|-----------|------------|-------|
-| Database writes | 25-50K rows/sec | With optimized batching |
-| API pagination | 100+ req/sec | Concurrent HTTP requests |
-| JSON streaming | Low overhead | Zero-copy where possible |
+| Component | Optimization | Benefit |
+|-----------|-------------|---------|
+| Database writes | Batch processing (5000 rows) | Reduced roundtrips |
+| API requests | Concurrent with Tokio | Parallel execution |
+| JSON streaming | Zero-copy where possible | Lower memory usage |
+| State tracking | Atomic counters | Lock-free performance |
 
 ### Optimization Documentation
 
