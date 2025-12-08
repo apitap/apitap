@@ -21,10 +21,16 @@ This directory contains comprehensive documentation for APITap performance optim
 ### Core Module Guides
 
 - **[FETCHER_GUIDE.md](FETCHER_GUIDE.md)** - HTTP data fetching module (`src/http/fetcher.rs`)
-  - Pagination strategies (limit/offset, page number, cursor)
+  - Pagination strategies (limit/offset, page number, ~~cursor~~)
+  - ⚠️ **Note:** Cursor-based pagination is not yet implemented
   - Memory management and buffering
   - Concurrency control
   - API reference and usage examples
+
+- **[ENV_VARS_GUIDE.md](ENV_VARS_GUIDE.md)** - Environment variables substitution
+  - Using `${ENV_VAR}` in configuration
+  - Security best practices
+  - Integration with headers, URLs, and query parameters
 
 - **[TABLE_PROVIDER_GUIDE.md](TABLE_PROVIDER_GUIDE.md)** - DataFusion table provider (`src/utils/table_provider.rs`)
   - How SQL queries work over streaming data
