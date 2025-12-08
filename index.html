@@ -762,6 +762,11 @@
                     <h3>SQL Templating</h3>
                     <p>Minijinja templates with custom functions for dynamic queries and date handling.</p>
                 </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⏰</div>
+                    <h3>Built-in Scheduler</h3>
+                    <p>Cron-based job scheduling with concurrent execution, graceful shutdown, and clean logging. Run jobs automatically on schedule.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -776,6 +781,9 @@
             <div class="code-container">
                 <pre><code><span class="code-comment">-- Declare your destination</span>
 {{ sink(name="postgres_sink") }}
+
+<span class="code-comment">-- Schedule to run every 3 minutes (optional)</span>
+{{ schedule("0 */3 * * * *") }}
 
 <span class="code-comment">-- Transform with SQL</span>
 SELECT 

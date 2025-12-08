@@ -58,6 +58,28 @@ fn test_use_source_function_captures_name() {
 }
 
 #[test]
+fn test_schedule_function_captures_name() {
+    let temp_dir = TempDir::new().unwrap();
+    let root = temp_dir.path().to_str().unwrap();
+
+    // Create a test SQL file with schedule() call
+    let sql_content = r#"{{ schedule("daily_job") }}
+{{ sink(name="postgres_target") }}
+SELECT * FROM scheduled_data;
+"#;
+    fs::write(temp_dir.path().join("test.sql"), sql_content).unwrap();
+
+    let shared_cap = Arc::new(Mutex::new(RenderCapture::default()));
+    let env = build_env_with_captures(root, &shared_cap);
+
+    let result = render_one(&env, &shared_cap, "test.sql").unwrap();
+
+    assert_eq!(result.capture.source, "daily_job");
+    assert_eq!(result.capture.sink, "postgres_target");
+    assert!(result.sql.contains("SELECT * FROM scheduled_data"));
+}
+
+#[test]
 fn test_render_one_clears_previous_captures() {
     let temp_dir = TempDir::new().unwrap();
     let root = temp_dir.path().to_str().unwrap();

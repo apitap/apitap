@@ -4,4 +4,4 @@
 
 SELECT 
     *
-FROM {{ use_source("github_repos") }} AS t;
+FROM {{ use_source("github_apache") }} AS t;

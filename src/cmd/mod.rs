@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use clap::Parser;
+use tokio_cron_scheduler::{Job, JobScheduler};
 use tracing::{debug, info, instrument, warn};
 
 use crate::config::load_config_from_path;
@@ -102,6 +103,8 @@ pub async fn run_pipeline(root: &str, cfg_path: &str) -> Result<()> {
 
     let start_time = Instant::now();
 
+    let mut scheduler = JobScheduler::new().await?;
+
     // Discover SQL templates and load configuration
     let template_names = list_sql_templates(root)?;
     info!("📂 Discovered {} SQL module(s)", template_names.len());
@@ -119,18 +122,38 @@ pub async fn run_pipeline(root: &str, cfg_path: &str) -> Result<()> {
 
     // Process each template
     for (index, name) in template_names.into_iter().enumerate() {
-        process_template(ProcessTemplateConfig {
-            index: index + 1,
-            name,
-            env: &env,
-            capture: &capture,
-            config: &config,
-            fetch_opts: &fetch_opts,
-        })
+        process_template(
+            ProcessTemplateConfig {
+                index: index + 1,
+                name,
+                env: &env,
+                capture: &capture,
+                config: &config,
+                fetch_opts: &fetch_opts,
+            },
+            &mut scheduler,
+        )
         .await?;
     }
 
-    log_pipeline_complete(start_time.elapsed().as_millis());
+    // Start the scheduler
+    scheduler.start().await?;
+    
+    info!("⏰ Scheduler started. Press Ctrl+C to stop.");
+    info!("═══════════════════════════════════════════════════════════");
+    
+    // Wait for shutdown signal (Ctrl+C)
+    match tokio::signal::ctrl_c().await {
+        Ok(()) => {
+            info!("🛑 Shutdown signal received. Stopping scheduler...");
+            scheduler.shutdown().await?;
+            log_pipeline_complete(start_time.elapsed().as_millis());
+        }
+        Err(err) => {
+            warn!("Unable to listen for shutdown signal: {}", err);
+        }
+    }
+
     Ok(())
 }
 
@@ -154,40 +177,104 @@ struct ProcessTemplateConfig<'a> {
 }
 
 /// Processes a single SQL template through the ETL pipeline.
-async fn process_template(config: ProcessTemplateConfig<'_>) -> Result<()> {
+async fn process_template(
+    config: ProcessTemplateConfig<'_>,
+    scheduler: &mut JobScheduler,
+) -> Result<()> {
     let span = tracing::info_span!("module", idx = config.index, name = %config.name);
     let _guard = span.enter();
 
     // Render template and extract metadata
     let rendered = render_one(config.env, config.capture, &config.name)?;
-    let source_name = &rendered.capture.source;
-    let sink_name = &rendered.capture.sink;
+    let source_name = rendered.capture.source.clone();
+    let sink_name = rendered.capture.sink.clone();
+    let schedule = rendered.capture.schedule.clone();
 
+    // Clone data needed for the scheduled job
+    let module_name = config.name.clone();
+    let sql_template = rendered.sql.clone();
+    let cfg = config.config.clone();
+    let fetch_opts = config.fetch_opts.clone();
+
+    // Clone module_name for use after the closure
+    let module_name_for_log = module_name.clone();
+
+    // Add async job
+    scheduler
+        .add(Job::new_async(&schedule, move |uuid, mut l| {
+            // Clone for the async block
+            let source_name = source_name.clone();
+            let sink_name = sink_name.clone();
+            let module_name = module_name.clone();
+            let sql_template = sql_template.clone();
+            let cfg = cfg.clone();
+            let fetch_opts = fetch_opts.clone();
+
+            Box::pin(async move {
+                // Execute the scheduled job
+                match execute_pipeline_job(
+                    &module_name,
+                    &source_name,
+                    &sink_name,
+                    &sql_template,
+                    &cfg,
+                    &fetch_opts,
+                )
+                .await
+                {
+                    Ok(_) => {
+                        info!("✅ Scheduled job '{module_name}' completed successfully");
+
+                        // Log next execution time
+                        if let Ok(Some(ts)) = l.next_tick_for_job(uuid).await {
+                            info!("⏰ Next execution for '{module_name}': {:?}", ts);
+                        }
+                    }
+                    Err(e) => {
+                        warn!("❌ Scheduled job '{module_name}' failed: {}", e);
+                    }
+                }
+            })
+        })?)
+        .await?;
+
+    info!("📅 Scheduled job '{module_name_for_log}' with cron: {schedule}");
+    Ok(())
+}
+
+/// Executes a single pipeline job (called by scheduler or directly).
+async fn execute_pipeline_job(
+    module_name: &str,
+    source_name: &str,
+    sink_name: &str,
+    sql_template: &str,
+    cfg: &Config,
+    fetch_opts: &FetchOpts,
+) -> Result<()> {
+    let module_start = Instant::now();
+    
     // Resolve source and target configurations
-    let source = config
-        .config
+    let source = cfg
         .source(source_name)
         .ok_or_else(|| create_config_error("source", source_name))?;
 
-    let target = config
-        .config
+    let target = cfg
         .target(sink_name)
         .ok_or_else(|| create_config_error("target", sink_name))?;
 
     // Build HTTP client with configured headers
     let client = build_http_client(source)?;
-    
+
     // Substitute environment variables in URL
     let url_with_env = crate::utils::template::substitute_env_vars(&source.url)?;
     let url = reqwest::Url::parse(&Http::new(url_with_env).get_url())?;
 
     // Prepare destination table and SQL
     let dest_table = extract_destination_table(source, source_name)?;
-    let sql = rendered.sql.replace(source_name, dest_table);
+    let sql = sql_template.replace(source_name, dest_table);
 
     // Initialize writer with configuration
     let writer_opts = create_writer_options(dest_table, source);
-    debug!(?writer_opts, "Writer options configured");
 
     let connection = target.create_conn().await?;
     let (writer, maybe_truncate) = connection.make_writer(&writer_opts)?;
@@ -198,8 +285,7 @@ async fn process_template(config: ProcessTemplateConfig<'_>) -> Result<()> {
     }
 
     // Execute ETL pipeline
-    log_module_start(&config.name, source_name, dest_table);
-    let module_start = Instant::now();
+    info!("🔄 Running: {module_name} | {source_name} → {dest_table}");
 
     let request = FetchRequest {
         client,
@@ -220,9 +306,10 @@ async fn process_template(config: ProcessTemplateConfig<'_>) -> Result<()> {
         write_mode: writer_opts.write_mode,
     };
 
-    let stats = run_fetch(request, query, write_config, config.fetch_opts).await?;
+    let stats = run_fetch(request, query, write_config, fetch_opts).await?;
 
-    log_module_complete(stats.total_items, module_start.elapsed().as_millis());
+    let duration = module_start.elapsed().as_millis();
+    info!("✅ Completed: {module_name} | {} records | {}ms", stats.total_items, duration);
     Ok(())
 }
 
@@ -285,16 +372,4 @@ fn log_pipeline_complete(duration_ms: u128) {
     info!("🎉 All Pipelines Completed Successfully!");
     info!("⏱️  Total Execution Time: {duration_ms}ms");
     info!("═══════════════════════════════════════════════════════════");
-}
-
-/// Logs the start of processing a module.
-fn log_module_start(name: &str, source_name: &str, dest_table: &str) {
-    info!("───────────────────────────────────────────────────────────");
-    info!("📋 Module: {name} | Source: {source_name} → Table: {dest_table}");
-    info!("🔄 Starting ETL Pipeline...");
-}
-
-/// Logs the completion of processing a module.
-fn log_module_complete(total_items: usize, duration_ms: u128) {
-    info!("✅ Module Completed | Records: {total_items} | Duration: {duration_ms}ms");
 }

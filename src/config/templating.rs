@@ -11,6 +11,7 @@ use walkdir::WalkDir;
 pub struct RenderCapture {
     pub sink: String,
     pub source: String,
+    pub schedule: String,
 }
 
 #[derive(Debug, Clone)]
@@ -84,6 +85,19 @@ pub fn build_env_with_captures(
         );
     }
 
+    // {{ schedule("...") }}
+    {
+        let cap = Arc::clone(shared_cap);
+        env.add_function(
+            "schedule",
+            move |name: String| -> std::result::Result<Value, MjError> {
+                let mut c = cap.lock().expect("RenderCapture mutex poisoned - this indicates a panic occurred while holding the lock");
+                c.schedule = name.clone();
+                Ok(Value::from(""))
+            },
+        );
+    }
+
     env
 }
 
@@ -131,6 +145,7 @@ pub fn render_one(
         );
         c.sink.clear();
         c.source.clear();
+        c.schedule.clear();
     }
 
     let tmpl = env.get_template(name)?;

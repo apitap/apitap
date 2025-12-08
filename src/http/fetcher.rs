@@ -38,7 +38,7 @@ pub async fn ndjson_stream_qs(
     config_retry: &crate::pipeline::Retry,
 ) -> Result<BoxStream<'static, Result<Value>>> {
     // Instrument HTTP/NDJSON parsing for tracing with source and optional data_path
-    let span = info_span!("http.ndjson_stream", source = %url, query_len = query.len());
+    let span = debug_span!("http.ndjson_stream", source = %url, query_len = query.len());
     let _g = span.enter();
     let client_with_retry = http_retry::build_client_with_retry(client.clone(), config_retry);
 
@@ -416,7 +416,7 @@ impl PaginatedFetcher {
     /// LIMIT/OFFSET mode. If `total_hint` is None, it fetches until a page yields 0 rows.
     pub async fn fetch_limit_offset(&self, config: LimitOffsetConfig<'_>) -> Result<FetchStats> {
         let span =
-            info_span!("fetch.limit_offset.stream", source = %self.base_url, limit = config.limit);
+            debug_span!("fetch.limit_offset.stream", source = %self.base_url, limit = config.limit);
         let _g = span.enter();
 
         let mut stats = FetchStats::new();
@@ -469,7 +469,7 @@ impl PaginatedFetcher {
             }
         };
 
-        let span = info_span!("fetch.page_number", source = %self.base_url, per_page = per_page);
+        let span = debug_span!("fetch.page_number", source = %self.base_url, per_page = per_page);
         let _g = span.enter();
 
         writer.begin().await?;
