@@ -48,7 +48,9 @@ fn clean_param(params: Option<Vec<QueryParam>>) -> Result<Vec<(String, String)>>
             .into_iter()
             .map(|q| {
                 let key = q.key;
-                let val = template::substitute_templates(&q.value)?;
+                // First substitute environment variables, then templates
+                let val = template::substitute_env_vars(&q.value)?;
+                let val = template::substitute_templates(&val)?;
                 Ok((key, val))
             })
             .collect(),

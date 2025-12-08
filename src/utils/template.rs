@@ -1,6 +1,7 @@
 use crate::{errors::Result, ApitapError};
 use chrono::{Duration, Local};
 use regex::Regex;
+use std::env;
 
 #[macro_export]
 macro_rules! parse_function {
@@ -177,6 +178,66 @@ pub fn substitute_templates(text: &str) -> Result<String> {
         // Parse and replace the function call
         let replacement_value = parse_function!(function_name)?;
         result.push_str(&replacement_value);
+
+        last_match = full_match.end();
+    }
+
+    // Add remaining text after last match
+    result.push_str(&text[last_match..]);
+
+    Ok(result)
+}
+
+/// Substitutes environment variables in text with their actual values.
+/// Environment variables should be in the format ${VAR_NAME}.
+///
+/// Assumes that dotenv (or equivalent) has already been executed to load
+/// environment variables into the process.
+///
+/// # Arguments
+///
+/// * `text` - The text containing environment variable placeholders
+///
+/// # Returns
+///
+/// * `Ok(String)` - Text with all environment variables substituted
+/// * `Err(ApitapError)` - If any environment variable is not found
+///
+/// # Errors
+///
+/// Returns an error if any referenced environment variable is not set in the environment.
+///
+/// # Example
+/// ```no_run
+/// use apitap::utils::template::substitute_env_vars;
+///
+/// // Assuming API_KEY is set in environment
+/// std::env::set_var("API_KEY", "secret123");
+/// std::env::set_var("BASE_URL", "https://api.example.com");
+///
+/// let text = "Connect to ${BASE_URL} with key ${API_KEY}";
+/// let result = substitute_env_vars(text).expect("Failed to substitute env vars");
+/// assert_eq!(result, "Connect to https://api.example.com with key secret123");
+/// ```
+pub fn substitute_env_vars(text: &str) -> Result<String> {
+    let re = Regex::new(r"\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}")?;
+
+    let mut result = String::with_capacity(text.len());
+    let mut last_match = 0;
+
+    for cap in re.captures_iter(text) {
+        let full_match = cap.get(0).unwrap();
+        let var_name = cap.get(1).unwrap().as_str();
+
+        // Add text before this match
+        result.push_str(&text[last_match..full_match.start()]);
+
+        // Get the environment variable value
+        let env_value = env::var(var_name).map_err(|_| {
+            ApitapError::PipelineError(format!("Environment variable not found: {}", var_name))
+        })?;
+        
+        result.push_str(&env_value);
 
         last_match = full_match.end();
     }
