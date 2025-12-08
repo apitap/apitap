@@ -26,7 +26,7 @@
 //! ## Features
 //!
 //! - **SQL Transformations**: Write transformations in SQL with Minijinja templating
-//! - **Smart Pagination**: Automatic handling of limit/offset, page-based, and cursor pagination
+//! - **Smart Pagination**: Automatic handling of limit/offset and page-based pagination (cursor coming soon)
 //! - **Streaming**: Memory-efficient streaming for large datasets
 //! - **Retry Logic**: Automatic retry with exponential backoff
 //! - **Structured Logging**: JSON and human-readable log formats

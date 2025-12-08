@@ -104,7 +104,7 @@ See detailed performance analysis in:
   - ✅ **LimitOffset** (e.g., `?_limit=50&_start=100`)
   - ✅ **PageNumber** (e.g., `?page=2&per_page=50`)
   - ✅ **PageOnly** (e.g., `?page=2`)
-  - ✅ **Cursor** (e.g., `?cursor=xxx`)
+  - 🔄 **Cursor** (e.g., `?cursor=xxx`) - *Coming soon*
   - ✅ Automatic retry with exponential backoff
   - ✅ Configurable concurrency
 - 🧠 **DataFusion-backed SQL execution**
